@@ -1,8 +1,13 @@
 {
-  "domain": "fritz_hosts",
-  "name": "Fritz Hosts Sensor",
-  "version": "1.2",
-  "requirements": ["fritzconnection==2.1.0"],
-  "dependencies": [],
-  "codeowners": []
+  "domain": "fritz_host",
+  "name": "Fritz!Box Host Sensor",
+  "version": "1.0.0",
+  "documentation": "https://github.com/matteofiore/fritz_host",
+  "issue_tracker": "https://github.com/matteofiore/fritz_host/issues",
+  "requirements": [
+    "fritzconnection==1.15.0",
+    "voluptuous==0.15.2"
+  ],
+  "codeowners": ["matteofiore"],
+  "iot_class": "local_polling"
 }
