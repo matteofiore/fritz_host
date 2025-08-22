@@ -1,21 +1,19 @@
-"""Fritz!Box Host Sensor integration."""
-
+"""Fritz Hosts integration."""
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-
-DOMAIN = "fritz_hosts"
+from .const import DOMAIN
 
 async def async_setup(hass: HomeAssistant, config: dict):
-    """Set up the integration from configuration.yaml (optional)."""
+    """Set up the Fritz Hosts integration from configuration.yaml (if needed)."""
+    # Non è richiesto se usi solo config flow
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up the integration from a config flow entry."""
-    # Qui puoi salvare l'IP, utente e password
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = entry.data
-    # Creazione del sensore
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "sensor")
-    )
+    """Set up Fritz Hosts from a config entry."""
+    # Inoltra la configurazione al sensore
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
     return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Unload a config entry."""
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor"])
