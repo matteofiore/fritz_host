@@ -1,5 +1,11 @@
 {
-  "name": "Fritz!Box Host Sensor",
+  "name": "Fritz Hosts Sensor",
   "content_in_root": false,
-  "render_readme": true
+  "appdaemon": false,
+  "python_script": false,
+  "plugin": false,
+  "theme": false,
+  "integration": true,
+  "after_dependencies": [],
+  "domains": ["sensor"]
 }
