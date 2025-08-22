@@ -1,23 +1,34 @@
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_HOST
+from homeassistant.core import callback
 
-DOMAIN = "fritz_hosts"
+from .const import DOMAIN
 
-class FritzHostsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for FritzHosts."""
+DATA_SCHEMA = vol.Schema({
+    vol.Required("host"): str,
+    vol.Required("username"): str,
+    vol.Required("password"): str,
+})
 
+class FritzHostConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
+        errors = {}
         if user_input is not None:
-            # Salva la configurazione inserita dall’utente
-            return self.async_create_entry(title="FritzBox Hosts", data=user_input)
+            host = user_input["host"]
+            username = user_input["username"]
+            password = user_input["password"]
+            
+            # qui puoi fare un test di connessione
+            try:
+                from fritzconnection import FritzConnection
+                fc = FritzConnection(address=host, user=username, password=password)
+                fc.get_ftp_hosts = fc.call_action('Hosts1', 'GetHostList')
+            except Exception:
+                errors["base"] = "cannot_connect"
 
-        # Mostra il form per inserire IP, utente e password
-        data_schema = vol.Schema({
-            vol.Required(CONF_HOST, default="192.168.1.1"): str,
-            vol.Required(CONF_USERNAME): str,
-            vol.Required(CONF_PASSWORD): str,
-        })
-        return self.async_show_form(step_id="user", data_schema=data_schema)
+            if not errors:
+                return self.async_create_entry(title="Fritz Host", data=user_input)
+
+        return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors=errors)
