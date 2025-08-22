@@ -1,0 +1,8 @@
+{
+  "domain": "fritz_hosts",
+  "name": "Fritz Hosts Sensor",
+  "version": "1.2",
+  "requirements": ["fritzconnection==2.1.0"],
+  "dependencies": [],
+  "codeowners": []
+}
