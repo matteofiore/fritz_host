@@ -1,5 +1,5 @@
 {
-  "domain": "fritz_host",
+  "domain": "fritz_hosts",
   "name": "Fritz!Box Host Sensor",
   "version": "1.0.0",
   "documentation": "https://github.com/matteofiore/fritz_host",
