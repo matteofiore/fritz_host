@@ -1,8 +1,5 @@
 {
-  "name": "Fritz Hosts Sensor",
+  "name": "Fritz!Box Host Sensor",
   "content_in_root": false,
-  "render_readme": true,
-  "domains": ["sensor"],
-  "country": "IT",
-  "iot_class": "local_polling"
+  "render_readme": true
 }
