@@ -1,29 +1,24 @@
 import asyncio
 import functools
 import voluptuous as vol
-
 from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
-
 from .const import DOMAIN
-
 from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzhosts import FritzHosts
 
-
 class FritzHostsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Fritz!Box Hosts."""
+    """Gestione del flusso di configurazione per Fritz!Box Hosts."""
 
     VERSION = 1
 
     async def async_step_user(self, user_input=None) -> FlowResult:
-        """Handle the initial step."""
+        """Step iniziale della configurazione."""
         errors = {}
 
         if user_input is not None:
             try:
-                # Esegui la connessione e la chiamata sincrona in un executor
+                # Esegui la connessione in executor per non bloccare il loop
                 fc = await self.hass.async_add_executor_job(
                     functools.partial(
                         FritzConnection,
@@ -33,24 +28,21 @@ class FritzHostsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     )
                 )
 
+                # Leggi i dispositivi attivi sempre in executor
                 active_hosts = await self.hass.async_add_executor_job(
-                    functools.partial(
-                        lambda fc: FritzHosts(fc).get_active_hosts(),
-                        fc
-                    )
+                    functools.partial(lambda fc: FritzHosts(fc).get_active_hosts(), fc)
                 )
 
-                # Se la connessione funziona, crea la configurazione
+                # Se tutto funziona, crea l’entry
                 return self.async_create_entry(
                     title=f"Fritz!Box {user_input['host']}",
                     data=user_input
                 )
 
-            except Exception as e:
+            except Exception:
                 errors["base"] = "cannot_connect"
-                self._async_handle_exception(e)
 
-        # Form di input
+        # Schema del form
         data_schema = vol.Schema(
             {
                 vol.Required("host"): str,
@@ -59,6 +51,4 @@ class FritzHostsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }
         )
 
-        return self.async_show_form(
-            step_id="user", data_schema=data_schema, errors=errors
-        )
+        return self.async_show_form(step_id="user", data_schema=data_schema, errors=errors)
