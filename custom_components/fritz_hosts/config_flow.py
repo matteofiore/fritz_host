@@ -1,20 +1,18 @@
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
 
-DOMAIN = "fritz_host"
+DOMAIN = "fritz_hosts"
 
-class FritzHostConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for FritzHost."""
+class FritzHostsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Fritz!Box Host Sensor."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
         if user_input is not None:
-            # qui potresti validare host/user/password
+            # Qui puoi validare host, username e password
             return self.async_create_entry(title="Fritz!Box", data=user_input)
 
         data_schema = vol.Schema({
