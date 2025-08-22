@@ -1,54 +1,73 @@
-import asyncio
-import functools
-import voluptuous as vol
-from homeassistant import config_entries
-from homeassistant.data_entry_flow import FlowResult
+"""Fritz!Box host sensor."""
+
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.const import DEVICE_CLASS_MONITOR
+from homeassistant.helpers.event import async_track_time_interval
+from datetime import timedelta
 from .const import DOMAIN
 from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzhosts import FritzHosts
+import functools
 
-class FritzHostsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Gestione del flusso di configurazione per Fritz!Box Hosts."""
 
-    VERSION = 1
+async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up sensor from config flow entry."""
+    config = entry.data
+    host_data = {
+        "address": config["host"],
+        "username": config["username"],
+        "password": config["password"],
+        "update_interval": config.get("update_interval", 60)  # default 60 secondi
+    }
 
-    async def async_step_user(self, user_input=None) -> FlowResult:
-        """Step iniziale della configurazione."""
-        errors = {}
+    sensor = FritzHostsSensor(hass, host_data)
+    async_add_entities([sensor], True)
 
-        if user_input is not None:
-            try:
-                # Esegui la connessione in executor per non bloccare il loop
-                fc = await self.hass.async_add_executor_job(
-                    functools.partial(
-                        FritzConnection,
-                        address=user_input["host"],
-                        user=user_input["username"],
-                        password=user_input["password"]
-                    )
-                )
 
-                # Leggi i dispositivi attivi sempre in executor
-                active_hosts = await self.hass.async_add_executor_job(
-                    functools.partial(lambda fc: FritzHosts(fc).get_active_hosts(), fc)
-                )
+class FritzHostsSensor(SensorEntity):
+    """Representation of a Fritz!Box hosts sensor."""
 
-                # Se tutto funziona, crea l’entry
-                return self.async_create_entry(
-                    title=f"Fritz!Box {user_input['host']}",
-                    data=user_input
-                )
+    def __init__(self, hass, host_data):
+        self.hass = hass
+        self._host_data = host_data
+        self._attr_name = "Fritz!Box Active Hosts"
+        self._attr_native_value = None
+        self._attr_device_class = DEVICE_CLASS_MONITOR
+        self._attr_state_class = "measurement"
+        self._attr_unique_id = f"fritz_hosts_{host_data['address']}"
 
-            except Exception:
-                errors["base"] = "cannot_connect"
+        self._unsub_update = None  # memorizza il listener dell'update periodico
 
-        # Schema del form
-        data_schema = vol.Schema(
-            {
-                vol.Required("host"): str,
-                vol.Required("username"): str,
-                vol.Required("password"): str,
-            }
+    @property
+    def native_value(self):
+        return self._attr_native_value
+
+    async def async_update(self):
+        """Aggiorna il sensore senza bloccare Home Assistant."""
+        fc = await self.hass.async_add_executor_job(
+            functools.partial(
+                FritzConnection,
+                address=self._host_data["address"],
+                user=self._host_data["username"],
+                password=self._host_data["password"]
+            )
         )
 
-        return self.async_show_form(step_id="user", data_schema=data_schema, errors=errors)
+        active_hosts = await self.hass.async_add_executor_job(
+            functools.partial(lambda fc: FritzHosts(fc).get_active_hosts(), fc)
+        )
+
+        self._attr_native_value = len(active_hosts)
+
+    async def async_added_to_hass(self):
+        """Quando il sensore viene aggiunto, avvia l'update periodico."""
+        interval = timedelta(seconds=self._host_data.get("update_interval", 60))
+        self._unsub_update = async_track_time_interval(
+            self.hass, lambda now: self.async_update(), interval
+        )
+
+    async def async_will_remove_from_hass(self):
+        """Annulla l'update periodico quando il sensore viene rimosso."""
+        if self._unsub_update:
+            self._unsub_update()
+            self._unsub_update = None
