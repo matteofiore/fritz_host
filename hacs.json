@@ -1,11 +1,7 @@
 {
-  "name": "Fritz Hosts Sensor",
-  "content_in_root": false,
-  "appdaemon": false,
-  "python_script": false,
-  "plugin": false,
-  "theme": false,
-  "integration": true,
-  "after_dependencies": [],
-  "domains": ["sensor"]
+  "name": "Octopus Energy Costo Italia",
+  "domain": "octopus_energy",
+  "country": "IT",
+  "homeassistant": "2024.6.0",
+  "render_readme": true
 }
