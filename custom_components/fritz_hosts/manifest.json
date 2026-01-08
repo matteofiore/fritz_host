@@ -1,7 +1,7 @@
 {
   "domain": "fritz_hosts",
   "name": "Fritz!Box Host Sensor",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "documentation": "https://github.com/matteofiore/fritz_host",
   "issue_tracker": "https://github.com/matteofiore/fritz_host/issues",
   "requirements": ["fritzconnection==1.15.0"],
